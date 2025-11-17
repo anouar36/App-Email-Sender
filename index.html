@@ -1,0 +1,115 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">      
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Automatic Email Sender</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/milligram/1.4.1/milligram.min.css">
+  <style>
+    body { max-width: 700px; margin: 40px auto; }
+    .success { color: green; }
+    .error { color: red; }
+  </style>
+</head>
+<body>
+  <div style="text-align:center;margin-bottom:30px;">
+    <img src="https://cdn-icons-png.flaticon.com/512/561/561127.png" alt="Logo" style="width:80px;">
+    <h2 style="font-family:'Segoe UI',sans-serif;font-weight:700;color:#2d3e50;">Automatic Email Sender</h2>
+    <p style="color:#7f8c8d;margin-top:10px;">Send job application emails with automatic company extraction and database tracking</p>
+    <div style="margin-top:15px;">
+      <a href="dashboard.html" style="background:linear-gradient(135deg,#667eea,#764ba2);color:white;padding:10px 20px;text-decoration:none;border-radius:8px;font-weight:600;margin-right:10px;">📊 View Analytics Dashboard</a>
+      <button onclick="exportToExcel()" style="background:#28a745;color:white;padding:10px 20px;border:none;border-radius:8px;font-weight:600;cursor:pointer;">📄 Export to Excel</button>
+    </div>
+  </div>
+  <form id="emailForm" enctype="multipart/form-data" style="background:#fff;padding:30px;border-radius:12px;box-shadow:0 2px 12px #eee;">
+    <label for="sender">Sender Name (Optional)</label>
+    <input type="text" id="sender" name="sender" placeholder="Your name will be extracted from .env if left empty">
+
+    <label for="subject">Subject</label>
+    <input type="text" id="subject" name="subject" value="Candidature pour un stage en développement web full stack" required>
+
+    <label for="content">Message</label>
+    <textarea id="content" name="content" rows="8" required>Bonjour,\n\n Je me permets de vous adresser ma candidature pour un stage en développement web full stack d'une durée de deux mois, à partir de mai 2025. Actuellement étudiant à YouCode UM6P Maroc, je suis motivé à mettre mes compétences techniques et mes connaissances au service de vos projets.Au cours de ma formation et de mes projets académiques réalisés au sein de YouCode, j’ai pu développer des compétences solides en développement web, aussi bien en front-end qu’en back-end. J’ai également acquis des compétences transversales telles que le travail en équipe, la gestion de projet agile et la résolution de problèmes techniques. Vous trouverez ci-joint mon CV pour plus de détails sur mon parcours. Je serais ravi d’échanger avec vous lors d’un entretien afin de discuter de la manière dont je pourrais contribuer à vos projets. Je reste à votre disposition pour toute information complémentaire. Vous pouvez me joindre au +212 622-734781 ou par email à ayoub.labite@gmail.com. Dans l’attente de votre retour, je vous prie d’agréer l’expression de mes salutations respectueuses.\n Cordialement, \nAyoub Labit</textarea>
+
+    <label for="recipients">Recipients (comma separated)</label>
+    <textarea id="recipients" name="recipients" rows="4" required>itsolutions@intelcia.com,contact@radiumdigital.ma,contact@digitalandcreativity.com,contact@digitalholding.ma,contact@digitalclub.ma,Contact@digitalma.ma,contact@digitalad.ma,contact@up-skill.org,contact@pixelweb.ma,contact@softas.ma,contact@apexagency.ma,contact@softydev.com,contact@infomed-tech.com,simo.asmouh@gmail.com,mazouari@powerm.ma,contact@creation-site-maroc.ma,contact@inovteam.com,contact@highsystemsinfo.com,Contact@jokesigner.com,khadija.marine@sofrecom.com,webagency.maroc.group@gmail.com,cbi@cbi.ma,talentunit.ma@capgemini.com,Imane.machane@hps-worldwide.com,Contact@adria-bt.com,contact@finatech.com,cv@dba.ma,hello@dba.ma,contact@cbo.ma,anwar.class36flow@gmail.com,ayoub.labite@gmail.com</textarea>
+
+    <button type="submit">Send Emails</button>
+    <button type="button" id="stopBtn" style="margin-left:10px;background:#e74c3c;color:#fff;">Stop</button>
+  </form>
+  <div id="result"></div>
+
+  <script>
+    let stopRequested = false;
+    document.getElementById('stopBtn').addEventListener('click', function() {
+      stopRequested = true;
+      document.getElementById('result').innerHTML = '<p class="error">⏹️ Sending stopped by user.</p>';
+    });
+    document.getElementById('emailForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      stopRequested = false;
+      const sender = document.getElementById('sender').value;
+      const subject = document.getElementById('subject').value;
+      const content = document.getElementById('content').value;
+      const recipients = document.getElementById('recipients').value.split(',').map(r => r.trim());
+      try {
+        if (stopRequested) return;
+        const res = await fetch('/api/send', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ sender, subject, content, recipients })
+        });
+        if (stopRequested) return;
+        const data = await res.json();
+        if (data.success) {
+          document.getElementById('result').innerHTML = '<p class="success">✅ Emails have been scheduled successfully!</p>';
+        } else {
+          document.getElementById('result').innerHTML = '<p class="error">❌ Error: ' + (data.error || 'Unknown error') + '</p>';
+        }
+      } catch (err) {
+        if (!stopRequested) {
+          document.getElementById('result').innerHTML = '<p class="error">❌ Error sending emails.</p>';
+        }
+      }
+    });
+
+    // Excel export function
+    async function exportToExcel() {
+      try {
+        const originalText = event.target.innerHTML;
+        event.target.innerHTML = '⏳ Exporting...';
+        event.target.disabled = true;
+
+        const response = await fetch('/api/export-excel');
+        
+        if (response.ok) {
+          const blob = await response.blob();
+          const url = window.URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          
+          const currentDate = new Date().toISOString().split('T')[0];
+          a.download = `Email_Applications_Export_${currentDate}.xlsx`;
+          
+          document.body.appendChild(a);
+          a.click();
+          window.URL.revokeObjectURL(url);
+          document.body.removeChild(a);
+          
+          // Show success message
+          document.getElementById('result').innerHTML = '<p class="success">✅ Excel file downloaded successfully!</p>';
+        } else {
+          const errorData = await response.json();
+          document.getElementById('result').innerHTML = `<p class="error">❌ Export failed: ${errorData.error}</p>`;
+        }
+        
+      } catch (error) {
+        document.getElementById('result').innerHTML = '<p class="error">❌ Export failed: ' + error.message + '</p>';
+      } finally {
+        event.target.innerHTML = originalText;
+        event.target.disabled = false;
+      }
+    }
+  </script>
+</body>
+</html>

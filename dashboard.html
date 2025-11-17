@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Email Analytics Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 3rem;
+            margin-bottom: 10px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+        }
+
+        .card h3 {
+            color: #667eea;
+            margin-bottom: 20px;
+            font-size: 1.4rem;
+        }
+
+        .stat-box {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            margin-bottom: 15px;
+        }
+
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 1rem;
+            opacity: 0.9;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+
+        .btn-secondary {
+            background: #f8f9fa;
+            color: #667eea;
+            border: 2px solid #667eea;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .email-list {
+            max-height: 400px;
+            overflow-y: auto;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+        }
+
+        .email-item {
+            padding: 15px;
+            border-bottom: 1px solid #f1f1f1;
+            transition: background 0.2s ease;
+        }
+
+        .email-item:hover {
+            background: #f8f9fa;
+        }
+
+        .email-item:last-child {
+            border-bottom: none;
+        }
+
+        .email-to {
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 5px;
+        }
+
+        .email-company {
+            color: #28a745;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .email-date {
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+
+        .filters {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 25px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .filter-row {
+            display: flex;
+            gap: 15px;
+            align-items: end;
+            flex-wrap: wrap;
+        }
+
+        .filter-group {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .filter-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .filter-group input,
+        .filter-group select {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
+        }
+
+        .filter-group input:focus,
+        .filter-group select:focus {
+            border-color: #667eea;
+            outline: none;
+        }
+
+        .company-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .company-item {
+            background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .company-name {
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: #1976d2;
+        }
+
+        .company-count {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #0d47a1;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #6c757d;
+        }
+
+        .test-section {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            margin-bottom: 25px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .test-input-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .test-input-group input {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 1rem;
+        }
+
+        .test-result {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #28a745;
+            margin-top: 15px;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .filter-row {
+                flex-direction: column;
+            }
+
+            .filter-group {
+                min-width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📊 Email Analytics Dashboard</h1>
+            <p>Track your job application emails with database persistence and company extraction</p>
+        </div>        <!-- Navigation Buttons -->
+        <div class="button-group">
+            <a href="index.html" class="btn btn-primary">📧 Send Emails</a>
+            <button onclick="loadStats()" class="btn btn-secondary">🔄 Refresh Data</button>
+            <button onclick="showTestSection()" class="btn btn-secondary">🧪 Test Extraction</button>
+            <button onclick="exportToExcel()" class="btn btn-primary">📊 Export to Excel</button>
+        </div>
+
+        <!-- Test Company Extraction Section -->
+        <div id="testSection" class="test-section" style="display: none;">
+            <h3>🧪 Test Company Name Extraction</h3>
+            <div class="test-input-group">
+                <input type="email" id="testEmail" placeholder="Enter email address to test extraction..." />
+                <button onclick="testExtraction()" class="btn btn-primary">Test</button>
+            </div>
+            <div id="testResult"></div>
+        </div>
+
+        <!-- Statistics Overview -->
+        <div class="dashboard-grid">
+            <div class="card">
+                <h3>📈 Overview Statistics</h3>
+                <div id="overviewStats">
+                    <div class="loading">Loading statistics...</div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3>🏢 Top Companies</h3>
+                <div id="companyStats">
+                    <div class="loading">Loading company data...</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filters -->
+        <div class="filters">
+            <h3>🔍 Filter Email History</h3>
+            <div class="filter-row">
+                <div class="filter-group">
+                    <label for="companyFilter">Company Name:</label>
+                    <input type="text" id="companyFilter" placeholder="Filter by company..." />
+                </div>
+                <div class="filter-group">
+                    <label for="dateFromFilter">From Date:</label>
+                    <input type="date" id="dateFromFilter" />
+                </div>
+                <div class="filter-group">
+                    <label for="dateToFilter">To Date:</label>
+                    <input type="date" id="dateToFilter" />
+                </div>
+                <div class="filter-group">
+                    <button onclick="filterEmails()" class="btn btn-primary">Apply Filters</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Email History -->
+        <div class="card">
+            <h3>📋 Email History</h3>
+            <div id="emailHistory">
+                <div class="loading">Loading email history...</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Load statistics on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            loadStats();
+            loadEmails();
+        });
+
+        async function loadStats() {
+            try {
+                const response = await fetch('/api/stats');
+                const data = await response.json();
+                
+                if (data.success) {
+                    displayStats(data.statistics);
+                } else {
+                    document.getElementById('overviewStats').innerHTML = 
+                        '<div style="color: red;">Error loading statistics</div>';
+                }
+            } catch (error) {
+                console.error('Error loading stats:', error);
+                document.getElementById('overviewStats').innerHTML = 
+                    '<div style="color: red;">Failed to connect to server</div>';
+            }
+        }
+
+        function displayStats(stats) {
+            // Overview stats
+            document.getElementById('overviewStats').innerHTML = `
+                <div class="stat-box">
+                    <div class="stat-number">${stats.totalEmails || 0}</div>
+                    <div class="stat-label">Total Emails Sent</div>
+                </div>
+            `;
+
+            // Company stats
+            const companyHTML = stats.emailsByCompany && stats.emailsByCompany.length > 0 
+                ? `<div class="company-stats">
+                    ${stats.emailsByCompany.slice(0, 6).map(company => `
+                        <div class="company-item">
+                            <div class="company-name">${company.company_name}</div>
+                            <div class="company-count">${company.count}</div>
+                        </div>
+                    `).join('')}
+                </div>`
+                : '<div style="text-align: center; color: #6c757d; padding: 20px;">No company data yet. Send some emails first!</div>';
+                
+            document.getElementById('companyStats').innerHTML = companyHTML;
+        }
+
+        async function loadEmails(filters = {}) {
+            try {
+                const queryParams = new URLSearchParams(filters);
+                const response = await fetch(`/api/emails?${queryParams}`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    displayEmails(data.emails);
+                } else {
+                    document.getElementById('emailHistory').innerHTML = 
+                        '<div style="color: red;">Error loading email history</div>';
+                }
+            } catch (error) {
+                console.error('Error loading emails:', error);
+                document.getElementById('emailHistory').innerHTML = 
+                    '<div style="color: red;">Failed to connect to server</div>';
+            }
+        }
+
+        function displayEmails(emails) {
+            if (!emails || emails.length === 0) {
+                document.getElementById('emailHistory').innerHTML = 
+                    '<div style="text-align: center; color: #6c757d; padding: 40px;">No emails found. Start sending emails to see them here!</div>';
+                return;
+            }
+
+            const emailHTML = `
+                <div class="email-list">
+                    ${emails.map(email => `
+                        <div class="email-item">
+                            <div class="email-to">${email.to_email}</div>
+                            <div class="email-company">🏢 ${email.company_name || 'Unknown Company'}</div>
+                            <div class="email-date">📅 ${email.sent_date} at ${email.sent_time}</div>
+                            <div style="color: #6c757d; font-size: 0.9rem; margin-top: 5px;">
+                                Subject: ${email.subject || 'No Subject'}
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+            
+            document.getElementById('emailHistory').innerHTML = emailHTML;
+        }
+
+        function filterEmails() {
+            const filters = {};
+            
+            const company = document.getElementById('companyFilter').value.trim();
+            const dateFrom = document.getElementById('dateFromFilter').value;
+            const dateTo = document.getElementById('dateToFilter').value;
+            
+            if (company) filters.company = company;
+            if (dateFrom) filters.date_from = dateFrom;
+            if (dateTo) filters.date_to = dateTo;
+            
+            loadEmails(filters);
+        }
+
+        function showTestSection() {
+            const section = document.getElementById('testSection');
+            section.style.display = section.style.display === 'none' ? 'block' : 'none';
+        }
+
+        async function testExtraction() {
+            const email = document.getElementById('testEmail').value.trim();
+            const resultDiv = document.getElementById('testResult');
+            
+            if (!email) {
+                resultDiv.innerHTML = '<div style="color: red;">Please enter an email address</div>';
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/test-extraction', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ email })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    resultDiv.innerHTML = `
+                        <div class="test-result">
+                            <strong>✅ Extraction Result:</strong><br>
+                            <strong>Email:</strong> ${data.email}<br>
+                            <strong>Extracted Company:</strong> ${data.extracted_company}<br>
+                            <strong>Date:</strong> ${data.current_date}<br>
+                            <strong>Time:</strong> ${data.current_time}
+                        </div>
+                    `;
+                } else {
+                    resultDiv.innerHTML = `<div style="color: red;">❌ Error: ${data.error}</div>`;
+                }
+            } catch (error) {
+                console.error('Test extraction error:', error);
+                resultDiv.innerHTML = `<div style="color: red;">❌ Failed to test extraction</div>`;
+            }        }
+
+        async function exportToExcel() {
+            try {
+                // Show loading state
+                const originalText = event.target.innerHTML;
+                event.target.innerHTML = '⏳ Exporting...';
+                event.target.disabled = true;
+
+                console.log('📊 Starting Excel export...');
+                
+                // Make request to export endpoint
+                const response = await fetch('/api/export-excel');
+                
+                if (response.ok) {
+                    // Get the blob from response
+                    const blob = await response.blob();
+                    
+                    // Create download link
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    
+                    // Generate filename with current date
+                    const currentDate = new Date().toISOString().split('T')[0];
+                    a.download = `Email_Applications_Export_${currentDate}.xlsx`;
+                    
+                    // Trigger download
+                    document.body.appendChild(a);
+                    a.click();
+                    
+                    // Cleanup
+                    window.URL.revokeObjectURL(url);
+                    document.body.removeChild(a);
+                    
+                    console.log('✅ Excel export completed successfully');
+                    
+                    // Show success message
+                    const successMsg = document.createElement('div');
+                    successMsg.style.cssText = 'position: fixed; top: 20px; right: 20px; background: #28a745; color: white; padding: 15px 20px; border-radius: 8px; z-index: 1000; box-shadow: 0 4px 8px rgba(0,0,0,0.2);';
+                    successMsg.innerHTML = '✅ Excel file downloaded successfully!';
+                    document.body.appendChild(successMsg);
+                    
+                    setTimeout(() => {
+                        document.body.removeChild(successMsg);
+                    }, 4000);
+                    
+                } else {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || 'Export failed');
+                }
+                
+            } catch (error) {
+                console.error('❌ Excel export error:', error);
+                
+                // Show error message
+                const errorMsg = document.createElement('div');
+                errorMsg.style.cssText = 'position: fixed; top: 20px; right: 20px; background: #dc3545; color: white; padding: 15px 20px; border-radius: 8px; z-index: 1000; box-shadow: 0 4px 8px rgba(0,0,0,0.2);';
+                errorMsg.innerHTML = `❌ Export failed: ${error.message}`;
+                document.body.appendChild(errorMsg);
+                
+                setTimeout(() => {
+                    if (document.body.contains(errorMsg)) {
+                        document.body.removeChild(errorMsg);
+                    }
+                }, 6000);
+                
+            } finally {
+                // Reset button state
+                event.target.innerHTML = originalText;
+                event.target.disabled = false;
+            }        }
+
+        // Excel export function
+        async function exportToExcel() {
+            try {
+                const button = event.target;
+                const originalText = button.innerHTML;
+                button.innerHTML = '⏳ Exporting...';
+                button.disabled = true;
+
+                const response = await fetch('/api/export-excel');
+                
+                if (response.ok) {
+                    const blob = await response.blob();
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    
+                    const currentDate = new Date().toISOString().split('T')[0];
+                    a.download = `Email_Applications_Export_${currentDate}.xlsx`;
+                    
+                    document.body.appendChild(a);
+                    a.click();
+                    window.URL.revokeObjectURL(url);
+                    document.body.removeChild(a);
+                    
+                    // Show success message
+                    alert('✅ Excel file downloaded successfully!');
+                } else {
+                    const errorData = await response.json();
+                    alert(`❌ Export failed: ${errorData.error}`);
+                }
+                
+            } catch (error) {
+                console.error('Excel export error:', error);
+                alert('❌ Export failed: ' + error.message);
+            } finally {
+                const button = event.target;
+                button.innerHTML = '📊 Export to Excel';
+                button.disabled = false;
+            }
+        }
+
+        // Set default date filters to last 30 days
+        document.getElementById('dateFromFilter').value = new Date(Date.now() - 30*24*60*60*1000).toISOString().split('T')[0];
+        document.getElementById('dateToFilter').value = new Date().toISOString().split('T')[0];
+    </script>
+</body>
+</html>
