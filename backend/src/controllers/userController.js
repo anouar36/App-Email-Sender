@@ -1,106 +1,66 @@
+import { query } from '../config/sqlite-database.js';
 import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
 import bcrypt from 'bcryptjs';
-import pool from '../config/database.js'; // Assuming pool is exported from a db module
+import { fileURLToPath } from 'url';
 
-// Configure storage for profile images
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+const uploadDir = path.join(__dirname, '../../uploads/profiles');
+if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
+
 const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    const uploadDir = path.join(process.cwd(), 'uploads/profiles');
-    // Ensure directory exists
-    if (!fs.existsSync(uploadDir)) {
-      fs.mkdirSync(uploadDir, { recursive: true });
-    }
-    cb(null, uploadDir);
-  },
-  filename: function (req, file, cb) {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    cb(null, 'profile-' + uniqueSuffix + path.extname(file.originalname));
-  }
+  destination: (req, file, cb) => cb(null, uploadDir),
+  filename: (req, file, cb) => cb(null, `profile-${Date.now()}-${Math.round(Math.random() * 1e9)}${path.extname(file.originalname)}`),
 });
 
-// File filter (images only)
-const fileFilter = (req, file, cb) => {
-  if (file.mimetype.startsWith('image/')) {
-    cb(null, true);
-  } else {
-    cb(new Error('Only image files are allowed!'), false);
+export const upload = multer({
+  storage,
+  fileFilter: (req, file, cb) => file.mimetype.startsWith('image/') ? cb(null, true) : cb(new Error('Images only')),
+  limits: { fileSize: 5 * 1024 * 1024 },
+});
+
+export const getProfile = async (req, res) => {
+  try {
+    const result = await query('SELECT id, username, email, full_name, avatar_url, created_at FROM users WHERE id = ?', [req.user.id]);
+    if (result.rows.length === 0) return res.status(404).json({ success: false, message: 'User not found' });
+    res.json({ success: true, user: result.rows[0] });
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Failed to get profile' });
   }
 };
 
-export const upload = multer({ 
-  storage: storage,
-  fileFilter: fileFilter,
-  limits: {
-    fileSize: 5 * 1024 * 1024 // 5MB limit
-  }
-});
-
 export const updateProfile = async (req, res) => {
   try {
-    console.log("=== UPDATE PROFILE REQUEST ===");
+    const { full_name, password } = req.body;
     const userId = req.user.id;
-    console.log("User ID:", userId);
-    console.log("Request body:", req.body);
-    console.log("Request file:", req.file);
-    
-    const { name, email, password } = req.body;
     let avatarUrl = null;
+    if (req.file) avatarUrl = `/uploads/profiles/${req.file.filename}`;
 
-    if (req.file) {
-      // Store relative path
-      avatarUrl = `/uploads/profiles/${req.file.filename}`;
-      console.log("Avatar file uploaded:", req.file.filename);
-      console.log("Avatar URL to be saved:", avatarUrl);
-    }
+    // Build dynamic update
+    const fields = [];
+    const params = [];
 
-    // Update user in database using userId
-    let query = 'UPDATE users SET full_name = COALESCE($1, full_name)';
-    const params = [name];
-    let paramIndex = 2;
-
-    if (avatarUrl) {
-      query += `, avatar_url = $${paramIndex}`;
-      params.push(avatarUrl);
-      paramIndex++;
-    }
-
+    if (full_name) { fields.push('full_name = ?'); params.push(full_name); }
+    if (avatarUrl) { fields.push('avatar_url = ?'); params.push(avatarUrl); }
     if (password) {
-        const hashedPassword = await bcrypt.hash(password, 10);
-        query += `, password = $${paramIndex}`;
-        params.push(hashedPassword);
-        paramIndex++;
-        console.log("Password will be updated");
+      const hashed = await bcrypt.hash(password, 10);
+      fields.push('password = ?');
+      params.push(hashed);
     }
-    
-    query += ` WHERE id = $${paramIndex} RETURNING id, username, email, full_name, avatar_url`;
+    fields.push('updated_at = CURRENT_TIMESTAMP');
     params.push(userId);
 
-    console.log("Executing query:", query);
-    console.log("Query params:", params);
+    if (fields.length > 1) {
+      await query(`UPDATE users SET ${fields.join(', ')} WHERE id = ?`, params);
+    }
 
-    const result = await pool.query(query, params);
-    
-    console.log("Database update result:", result.rows[0]);
-    
-    // Return updated user data
-    res.json({
-      success: true,
-      message: 'Profile updated successfully',
-      user: {
-        id: result.rows[0].id,
-        name: result.rows[0].full_name,
-        email: result.rows[0].email,
-        avatarUrl: result.rows[0].avatar_url
-      }
-    });
-    
-    console.log("=== UPDATE PROFILE SUCCESS ===\n");
-
+    const result = await query('SELECT id, username, email, full_name, avatar_url FROM users WHERE id = ?', [userId]);
+    res.json({ success: true, message: 'Profile updated successfully', user: result.rows[0] });
   } catch (error) {
-    console.error("=== UPDATE PROFILE ERROR ===");
-    console.error('Profile update error:', error);
-    res.status(500).json({ message: 'Error updating profile', error: error.message });
+    console.error('Update profile error:', error);
+    res.status(500).json({ success: false, message: 'Failed to update profile' });
   }
 };

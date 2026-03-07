@@ -5,8 +5,8 @@ Write-Host ""
 Write-Host "========================================" -ForegroundColor Green
 Write-Host "   AUTO_MAILER - Starting Application   " -ForegroundColor Green
 Write-Host "========================================" -ForegroundColor Green
-Write-Host ""
-
+Write-Host ""                      
+                          
 # Kill anything on port 5000 or 3000 first
 Write-Host ">> Freeing ports 5000 and 3000..." -ForegroundColor Yellow
 $port5000 = netstat -ano | Select-String ":5000 " | Select-String "LISTENING"
@@ -22,8 +22,8 @@ if ($port3000) {
     taskkill /F /PID $pid3000 2>$null | Out-Null
     Write-Host "   Killed process on port 3000 (PID: $pid3000)" -ForegroundColor Gray
 }
-
-Start-Sleep -Seconds 1
+       
+Start-Sleep -Seconds 1         
 
 # Start Backend
 Write-Host ""
