@@ -34,7 +34,7 @@ services:
     envVars:
       - key: NODE_ENV
         value: production      - key: VITE_API_URL
-        value: https://app-email-sender-backend.onrender.com
+        value: https://app-email-sender.onrender.com
     headers:
       - path: /*
         name: X-Frame-Options
