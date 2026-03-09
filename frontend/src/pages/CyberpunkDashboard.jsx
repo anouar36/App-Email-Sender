@@ -3,7 +3,7 @@ import {
   Send, BarChart3, Settings, LogOut, Plus, Trash2,
   Upload, Terminal, Zap, Database, ChevronRight, Download,
   User, Eye, EyeOff, RefreshCw, FileText, AlertTriangle,
-  CheckCircle, XCircle, TrendingUp, Shield, Cpu, Mail
+  CheckCircle, XCircle, TrendingUp, Shield, Cpu, Mail, Menu, X
 } from 'lucide-react';
 import { useAuth } from '../utils/AuthContext';
 import { useNavigate } from 'react-router-dom';
@@ -15,10 +15,10 @@ const authHdr = (token, json = true) => ({
   Authorization: `Bearer ${token}`,
 });
 
-const CyberpunkDashboard = () => {
-  const { user, token, logout } = useAuth();
+const CyberpunkDashboard = () => {  const { user, token, logout } = useAuth();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('send');
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [senders, setSenders] = useState([]);
   const [analytics, setAnalytics] = useState(null);
   const [log, setLog] = useState(['> SYSTEM INITIALIZED', '> AWAITING COMMANDS...']);
@@ -331,39 +331,57 @@ const CyberpunkDashboard = () => {
     <div className="min-h-screen bg-black text-green-400 font-mono overflow-hidden relative">
       {/* scanlines */}
       <div className="pointer-events-none fixed inset-0 z-0"
-        style={{ background: 'repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,255,65,0.015) 2px,rgba(0,255,65,0.015) 4px)' }} />
-
-      {/* HEADER */}
-      <header className="border-b border-green-500/30 bg-black/98 px-6 py-3 flex items-center justify-between sticky top-0 z-20">
-        <div className="flex items-center gap-3">
-          <Cpu className="w-5 h-5 text-green-400" />
-          <span className="text-green-400 tracking-[0.3em] text-sm font-bold">
+        style={{ background: 'repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,255,65,0.015) 2px,rgba(0,255,65,0.015) 4px)' }} />      {/* HEADER */}
+      <header className="border-b border-green-500/30 bg-black/98 px-3 sm:px-6 py-3 flex items-center justify-between sticky top-0 z-20">
+        <div className="flex items-center gap-2 sm:gap-3">
+          {/* Hamburger for mobile */}
+          <button
+            className="md:hidden text-green-600 hover:text-green-400 p-1 border border-green-500/30 mr-1"
+            onClick={() => setSidebarOpen(v => !v)}
+            aria-label="Toggle menu"
+          >
+            {sidebarOpen ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
+          </button>
+          <Cpu className="w-5 h-5 text-green-400 shrink-0" />
+          <span className="text-green-400 tracking-[0.15em] sm:tracking-[0.3em] text-sm font-bold">
             AUTO_MAILER<span className={`ml-1 ${blink ? 'opacity-100' : 'opacity-0'}`}>█</span>
           </span>
-          <span className="text-xs text-green-900 border border-green-900 px-2 py-0.5">v2.0</span>
-          <span className="hidden md:inline text-xs text-green-900 border border-green-900/50 px-2 py-0.5">
+          <span className="text-xs text-green-900 border border-green-900 px-1.5 py-0.5 hidden sm:inline">v2.0</span>
+          <span className="hidden lg:inline text-xs text-green-900 border border-green-900/50 px-2 py-0.5">
             STATUS: <span className="text-green-600">ONLINE</span>
           </span>
         </div>
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-2 sm:gap-4">
           <div className="hidden sm:flex items-center gap-2 text-xs">
             <div className="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse" />
             <span className="text-green-700">USER:</span>
-            <span className="text-green-500">{user?.username || user?.email || 'OPERATOR'}</span>
+            <span className="text-green-500 max-w-[100px] truncate">{user?.username || user?.email || 'OPERATOR'}</span>
           </div>
           <button onClick={handleLogout}
-            className="flex items-center gap-1.5 text-xs text-red-500/70 hover:text-red-400 border border-red-500/30 px-3 py-1.5 transition">
-            <LogOut className="w-3 h-3" /> LOGOUT
+            className="flex items-center gap-1.5 text-xs text-red-500/70 hover:text-red-400 border border-red-500/30 px-2 sm:px-3 py-1.5 transition">
+            <LogOut className="w-3 h-3" />
+            <span className="hidden sm:inline">LOGOUT</span>
           </button>
         </div>
-      </header>
+      </header>      <div className="flex h-[calc(100vh-53px)] relative">
+        {/* Mobile overlay backdrop */}
+        {sidebarOpen && (
+          <div
+            className="fixed inset-0 bg-black/70 z-20 md:hidden"
+            onClick={() => setSidebarOpen(false)}
+          />
+        )}
 
-      <div className="flex h-[calc(100vh-53px)]">
         {/* SIDEBAR */}
-        <nav className="w-52 border-r border-green-500/20 bg-black/80 flex flex-col shrink-0">
+        <nav className={`
+          fixed md:relative top-[53px] md:top-0 left-0 h-[calc(100vh-53px)]
+          w-56 border-r border-green-500/20 bg-black flex flex-col shrink-0
+          z-30 md:z-auto transition-transform duration-200
+          ${sidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
+        `}>
           <div className="p-3 text-xs text-green-900 border-b border-green-500/20 tracking-widest">[ NAVIGATION ]</div>
           {tabs.map(({ id, icon: Icon, label }) => (
-            <button key={id} onClick={() => setActiveTab(id)}
+            <button key={id} onClick={() => { setActiveTab(id); setSidebarOpen(false); }}
               className={`flex items-center gap-2.5 px-4 py-3 text-xs tracking-wider transition border-l-2 text-left w-full ${
                 activeTab === id
                   ? 'border-green-400 bg-green-500/10 text-green-300'
@@ -389,11 +407,9 @@ const CyberpunkDashboard = () => {
               ))}
             </div>
           )}
-        </nav>
-
-        {/* MAIN */}
-        <div className="flex-1 flex flex-col overflow-hidden">
-          <div className="flex-1 overflow-y-auto p-6">
+        </nav>        {/* MAIN */}
+        <div className="flex-1 flex flex-col overflow-hidden min-w-0">
+          <div className="flex-1 overflow-y-auto p-3 sm:p-6">
 
             {/* ══ SEND MAIL ══ */}
             {activeTab === 'send' && (
@@ -550,19 +566,18 @@ const CyberpunkDashboard = () => {
                     <Plus className="w-3 h-3" />
                     {addingSender ? 'REGISTERING...' : '[ ADD_SENDER ]'}
                   </button>
-                </form>
-                <div className="max-w-xl space-y-2">
+                </form>                <div className="max-w-xl space-y-2">
                   <div className="text-xs text-green-900 mb-2">[ REGISTERED_SENDERS ] — {senders.length} found</div>
                   {senders.length === 0 ? (
                     <div className="border border-green-900 p-4 text-xs text-green-900">No senders configured yet.</div>
                   ) : senders.map(s => (
-                    <div key={s.id} className="flex items-center justify-between border border-green-500/20 px-4 py-3 bg-green-500/5 hover:border-green-500/40 transition">
-                      <div className="min-w-0">
+                    <div key={s.id} className="flex items-center justify-between border border-green-500/20 px-3 sm:px-4 py-3 bg-green-500/5 hover:border-green-500/40 transition gap-2">
+                      <div className="min-w-0 flex-1">
                         <div className="text-xs text-green-300 truncate">{s.name}</div>
                         <div className="text-xs text-green-700 truncate">{s.email}</div>
                         <div className="text-xs text-green-900 mt-0.5">PROVIDER: {(s.provider || 'gmail').toUpperCase()}</div>
                       </div>
-                      <button onClick={() => handleDeleteSender(s.id, s.email)} className={`${btnD} ml-4`}>
+                      <button onClick={() => handleDeleteSender(s.id, s.email)} className={`${btnD} ml-2 shrink-0`}>
                         <Trash2 className="w-3 h-3" />
                       </button>
                     </div>
@@ -573,14 +588,13 @@ const CyberpunkDashboard = () => {
 
             {/* ══ ANALYTICS ══ */}
             {activeTab === 'analytics' && (
-              <section>
-                <div className="flex items-start justify-between mb-4 gap-4">
+              <section>                <div className="flex items-start justify-between mb-4 gap-2 flex-wrap">
                   <SH title="ANALYTICS_MODULE.exe" sub="Campaign statistics and performance data" noMargin />
                   <div className="flex gap-2 shrink-0">
-                    <button onClick={fetchAnalytics} className={btnP}><RefreshCw className="w-3 h-3" /> REFRESH</button>
+                    <button onClick={fetchAnalytics} className={btnP}><RefreshCw className="w-3 h-3" /><span className="hidden sm:inline">REFRESH</span></button>
                     <button onClick={handleExport}
-                      className="flex items-center gap-2 px-4 py-2 text-xs tracking-widest border border-cyan-500/40 bg-cyan-500/5 text-cyan-400 hover:bg-cyan-500/15 transition font-mono">
-                      <Download className="w-3 h-3" /> EXPORT_XLSX
+                      className="flex items-center gap-2 px-3 sm:px-4 py-2 text-xs tracking-widest border border-cyan-500/40 bg-cyan-500/5 text-cyan-400 hover:bg-cyan-500/15 transition font-mono">
+                      <Download className="w-3 h-3" /><span className="hidden sm:inline">EXPORT_XLSX</span>
                     </button>
                   </div>
                 </div>
@@ -926,10 +940,8 @@ bob@co.com,Bob,Corp Inc`}
               </section>
             )}
 
-          </div>
-
-          {/* TERMINAL LOG */}
-          <div className="border-t border-green-500/20 bg-black/98 h-32 flex flex-col shrink-0">
+          </div>          {/* TERMINAL LOG */}
+          <div className="border-t border-green-500/20 bg-black/98 h-24 sm:h-32 flex flex-col shrink-0">
             <div className="flex items-center justify-between px-3 py-1.5 border-b border-green-500/10">
               <div className="flex items-center gap-2">
                 <Terminal className="w-3 h-3 text-green-900" />

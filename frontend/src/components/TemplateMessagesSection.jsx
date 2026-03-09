@@ -90,59 +90,56 @@ const TemplateMessagesSection = ({ user }) => {
             <div className="text-xs text-green-700 tracking-widest mb-4">
               [ {templates.length} TEMPLATE{templates.length !== 1 ? 'S' : ''} LOADED ]
             </div>
-            
-            {templates.map((template) => (
+              {templates.map((template) => (
               <div
                 key={template.id}
-                className="border border-green-500/20 bg-black/60 p-4 hover:border-green-400/40 transition-all"
+                className="border border-green-500/20 bg-black/60 p-3 sm:p-4 hover:border-green-400/40 transition-all"
               >
-                <div className="flex items-start justify-between">
+                <div className="flex items-start justify-between gap-2">
                   <div className="flex-1 min-w-0 space-y-2">
-                    <div className="flex items-center gap-3">
-                      <FileText size={14} className="text-green-500" />
-                      <h3 className="text-sm font-bold text-green-300 tracking-wider">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <FileText size={14} className="text-green-500 shrink-0" />
+                      <h3 className="text-sm font-bold text-green-300 tracking-wider truncate">
                         {template.name.toUpperCase()}
                       </h3>
-                      <span className="text-xs px-2 py-1 border border-green-500/40 bg-green-500/10 text-green-500">
+                      <span className="text-xs px-2 py-0.5 border border-green-500/40 bg-green-500/10 text-green-500 shrink-0">
                         {template.type.toUpperCase()}
                       </span>
                     </div>
-                    
-                    <div className="text-xs text-green-400 font-mono">
+
+                    <div className="text-xs text-green-400 font-mono truncate">
                       SUBJECT: {template.subject}
                     </div>
-                    
-                    <div className="text-xs text-green-700 font-mono border-l-2 border-green-500/20 pl-2 max-h-20 overflow-hidden">
-                      {template.body.length > 200 
-                        ? `${template.body.substring(0, 200).replace(/<[^>]*>/g, '')}...` 
+
+                    <div className="text-xs text-green-700 font-mono border-l-2 border-green-500/20 pl-2 max-h-16 overflow-hidden">
+                      {template.body.length > 150
+                        ? `${template.body.substring(0, 150).replace(/<[^>]*>/g, '')}...`
                         : template.body.replace(/<[^>]*>/g, '')
                       }
                     </div>
-                    
-                    <div className="flex items-center gap-4 text-xs text-green-800">
+
+                    <div className="flex items-center gap-3 text-xs text-green-800 flex-wrap">
                       <div className="flex items-center gap-1">
                         <Calendar size={10} />
-                        CREATED: {new Date(template.created_at).toLocaleDateString()}
+                        {new Date(template.created_at).toLocaleDateString()}
                       </div>
-                      <div>
-                        ID: #{template.id}
-                      </div>
+                      <div>ID: #{template.id}</div>
                     </div>
                   </div>
 
                   {/* Action Buttons */}
-                  <div className="flex gap-1 ml-4">
+                  <div className="flex flex-col sm:flex-row gap-1 shrink-0">
                     <button
                       onClick={() => handlePreview(template)}
-                      className="p-2 border border-green-500/40 text-green-500 hover:bg-green-500/10 hover:border-green-400 transition-all text-xs"
-                      title="Preview Template"
+                      className="p-2 border border-green-500/40 text-green-500 hover:bg-green-500/10 hover:border-green-400 transition-all"
+                      title="Preview"
                     >
                       <Eye size={12} />
                     </button>
                     <button
                       onClick={() => handleCopyTemplate(template)}
-                      className="p-2 border border-green-500/40 text-green-500 hover:bg-green-500/10 hover:border-green-400 transition-all text-xs"
-                      title="Copy Template"
+                      className="p-2 border border-green-500/40 text-green-500 hover:bg-green-500/10 hover:border-green-400 transition-all"
+                      title="Copy"
                     >
                       <Copy size={12} />
                     </button>
@@ -154,31 +151,30 @@ const TemplateMessagesSection = ({ user }) => {
         )}
       </div>
 
-      {/* Preview Modal - Cyberpunk Style */}
-      {showPreview && selectedTemplate && (
-        <div className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4 font-mono">
-          <div className="bg-black border-2 border-green-500 max-w-6xl max-h-[90vh] w-full overflow-hidden flex flex-col">
+      {/* Preview Modal - Cyberpunk Style */}      {showPreview && selectedTemplate && (
+        <div className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-2 sm:p-4 font-mono">
+          <div className="bg-black border-2 border-green-500 w-full max-w-4xl max-h-[95vh] overflow-hidden flex flex-col">
             {/* Modal Header */}
-            <div className="border-b border-green-500/30 p-4 flex items-center justify-between bg-green-500/5">
-              <div>
-                <h3 className="text-lg font-bold text-green-400 tracking-widest">
+            <div className="border-b border-green-500/30 p-3 sm:p-4 flex items-center justify-between bg-green-500/5 shrink-0">
+              <div className="min-w-0">
+                <h3 className="text-sm sm:text-lg font-bold text-green-400 tracking-widest">
                   [ TEMPLATE_PREVIEW.exe ]
                 </h3>
-                <p className="text-xs text-green-700">{selectedTemplate.name.toUpperCase()}</p>
+                <p className="text-xs text-green-700 truncate">{selectedTemplate.name.toUpperCase()}</p>
               </div>
               <button
                 onClick={closePreview}
-                className="px-3 py-1 border border-red-500/40 text-red-400 hover:bg-red-500/10 transition-colors text-xs tracking-widest"
+                className="ml-2 shrink-0 px-2 sm:px-3 py-1 border border-red-500/40 text-red-400 hover:bg-red-500/10 transition-colors text-xs tracking-widest"
               >
-                [X] CLOSE
+                [X]
               </button>
             </div>
 
-            {/* Modal Content */}
-            <div className="flex-1 overflow-hidden flex">
+            {/* Modal Content — stacked on mobile, side-by-side on sm+ */}
+            <div className="flex-1 overflow-hidden flex flex-col sm:flex-row">
               {/* Raw Content */}
-              <div className="w-1/2 p-4 overflow-y-auto border-r border-green-500/30">
-                <h4 className="text-xs font-bold text-green-500 mb-3 tracking-widest border-b border-green-500/20 pb-1">
+              <div className="sm:w-1/2 p-3 sm:p-4 overflow-y-auto border-b sm:border-b-0 sm:border-r border-green-500/30 max-h-40 sm:max-h-none">
+                <h4 className="text-xs font-bold text-green-500 mb-2 tracking-widest border-b border-green-500/20 pb-1">
                   [ RAW_CONTENT ]
                 </h4>
                 <pre className="text-xs text-green-400 font-mono whitespace-pre-wrap break-words leading-relaxed">
@@ -187,14 +183,14 @@ const TemplateMessagesSection = ({ user }) => {
               </div>
 
               {/* Rendered Preview */}
-              <div className="w-1/2 p-4 overflow-y-auto">
-                <h4 className="text-xs font-bold text-green-500 mb-3 tracking-widest border-b border-green-500/20 pb-1">
+              <div className="sm:w-1/2 p-3 sm:p-4 overflow-y-auto flex-1">
+                <h4 className="text-xs font-bold text-green-500 mb-2 tracking-widest border-b border-green-500/20 pb-1">
                   [ RENDERED_PREVIEW ]
                 </h4>
-                <div className="border border-green-500/30 bg-white min-h-[400px]">
+                <div className="border border-green-500/30 bg-white">
                   <iframe
                     srcDoc={selectedTemplate.body}
-                    className="w-full h-full min-h-[400px]"
+                    className="w-full min-h-[200px] sm:min-h-[400px]"
                     style={{ background: 'white' }}
                     title="Template Preview"
                   />
@@ -203,22 +199,20 @@ const TemplateMessagesSection = ({ user }) => {
             </div>
 
             {/* Modal Footer */}
-            <div className="border-t border-green-500/30 p-4 flex justify-between bg-green-500/5">
-              <div className="text-xs text-green-700 font-mono">
-                TEMPLATE_ID: #{selectedTemplate.id} | SIZE: {selectedTemplate.body.length} chars
+            <div className="border-t border-green-500/30 p-3 sm:p-4 flex justify-between items-center bg-green-500/5 shrink-0">
+              <div className="text-xs text-green-700 font-mono truncate">
+                ID: #{selectedTemplate.id} | {selectedTemplate.body.length} chars
               </div>
-              <div className="flex gap-2">
-                <button
-                  onClick={() => handleCopyTemplate(selectedTemplate)}
-                  className="px-4 py-2 border border-green-500/40 text-green-400 hover:bg-green-500/10 hover:border-green-400 transition-all text-xs tracking-widest"
-                >
-                  [ COPY ]
-                </button>
-              </div>
+              <button
+                onClick={() => handleCopyTemplate(selectedTemplate)}
+                className="ml-2 shrink-0 px-3 sm:px-4 py-2 border border-green-500/40 text-green-400 hover:bg-green-500/10 hover:border-green-400 transition-all text-xs tracking-widest"
+              >
+                [ COPY ]
+              </button>
             </div>
           </div>
         </div>
-      )}    </>
+      )}</>
   );
 };
 
