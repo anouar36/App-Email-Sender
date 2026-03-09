@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 
-const API = 'http://localhost:5000/api';
+const API = (import.meta.env.VITE_API_URL || (import.meta.env.PROD ? 'https://app-email-sender.onrender.com' : 'http://localhost:5000')) + '/api';
 const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {

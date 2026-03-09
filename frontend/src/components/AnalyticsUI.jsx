@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { Download, TrendingUp, Mail, AlertCircle, Activity, BarChart3, PieChart } from 'lucide-react';
 
+const API_BASE = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? 'https://app-email-sender.onrender.com' : 'http://localhost:5000');
+
 const AnalyticsUI = ({ analytics, onExport, isExporting }) => {
   const [localExporting, setLocalExporting] = useState(false);
   const exporting = Boolean(isExporting || localExporting);
@@ -62,7 +64,7 @@ const AnalyticsUI = ({ analytics, onExport, isExporting }) => {
 
       // Fetch detailed data from backend
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:5000/api/analytics/export-detailed', {
+      const response = await fetch(`${API_BASE}/api/analytics/export-detailed`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,

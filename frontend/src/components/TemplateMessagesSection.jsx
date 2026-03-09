@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { FileText, Eye, Copy, Edit, Trash2, Calendar, Terminal } from 'lucide-react';
 
+const API_BASE = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? 'https://app-email-sender.onrender.com' : 'http://localhost:5000');
+
 const TemplateMessagesSection = ({ user }) => {
   const [templates, setTemplates] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -15,7 +17,7 @@ const TemplateMessagesSection = ({ user }) => {
   const fetchTemplates = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:5000/api/templates', {
+      const response = await fetch(`${API_BASE}/api/templates`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'

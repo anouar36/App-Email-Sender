@@ -9,7 +9,7 @@ import { useAuth } from '../utils/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import TemplateMessagesSection from '../components/TemplateMessagesSection';
 
-const API = 'http://localhost:5000/api';
+const API = (import.meta.env.VITE_API_URL || (import.meta.env.PROD ? 'https://app-email-sender.onrender.com' : 'http://localhost:5000')) + '/api';
 const authHdr = (token, json = true) => ({
   ...(json ? { 'Content-Type': 'application/json' } : {}),
   Authorization: `Bearer ${token}`,
@@ -98,7 +98,7 @@ const CyberpunkDashboard = () => {
       const d = await r.json();
       if (d.success) {
         setProfileData({ full_name: d.user.full_name || '', email: d.user.email || '', username: d.user.username || '' });
-        if (d.user.avatar_url) setProfileAvatarPreview(`http://localhost:5000${d.user.avatar_url}`);
+        if (d.user.avatar_url) setProfileAvatarPreview(`${API.replace('/api','')}${d.user.avatar_url}`);
       }
     } catch { addLog('ERROR: Failed to load profile'); }
   };
@@ -279,7 +279,7 @@ const CyberpunkDashboard = () => {
       if (d.success) {
         setProfileMsg({ type: 'success', text: 'Profile updated successfully' });
         setProfilePassword(''); setProfileConfirm('');
-        if (d.user?.avatar_url) setProfileAvatarPreview(`http://localhost:5000${d.user.avatar_url}`);
+        if (d.user?.avatar_url) setProfileAvatarPreview(`${API.replace('/api','')}${d.user.avatar_url}`);
         addLog('SUCCESS: Profile updated');
       } else setProfileMsg({ type: 'error', text: d.message });
     } catch (err) { setProfileMsg({ type: 'error', text: err.message }); }

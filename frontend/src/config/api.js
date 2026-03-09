@@ -2,7 +2,7 @@
 const getApiUrl = () => {
   // In production, use environment variable or fallback to Render backend URL
   if (import.meta.env.PROD) {
-    return import.meta.env.VITE_API_URL || 'https://your-backend-app-name.onrender.com';
+    return import.meta.env.VITE_API_URL || 'https://app-email-sender.onrender.com';
   }
   // Development
   return 'http://localhost:5000';
