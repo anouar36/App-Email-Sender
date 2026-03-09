@@ -10,17 +10,14 @@ export default defineConfig({
         target: 'http://localhost:5000',
         changeOrigin: true,
       }
-    }  build: {
+    }
+  },
+  build: {
     outDir: 'dist',
     assetsDir: 'assets',
     sourcemap: false,
-    minify: false,
+    minify: 'esbuild',
     chunkSizeWarningLimit: 1000,
-    rollupOptions: {
-      output: {
-        manualChunks: undefined
-      }
-    }
   },
   define: {
     'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'production')
