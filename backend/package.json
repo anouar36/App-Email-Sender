@@ -3,11 +3,10 @@
   "version": "1.0.0",
   "description": "Email Sender Backend API",
   "main": "src/server.js",
-  "type": "module",
-  "engines": {
-    "node": ">=18.0.0",
-    "npm": ">=8.0.0"
-  },  "scripts": {
+  "type": "module",  "engines": {
+    "node": ">=20.0.0",
+    "npm": ">=9.0.0"
+  },"scripts": {
     "start": "node src/server.js",
     "dev": "nodemon src/server.js",
     "build": "npm rebuild better-sqlite3 --build-from-source",

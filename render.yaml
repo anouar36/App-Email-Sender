@@ -5,8 +5,9 @@ services:
     env: node
     plan: free
     region: oregon
-    buildCommand: cd backend && npm install --production
-    startCommand: cd backend && npm start
+    rootDir: backend
+    buildCommand: npm install
+    startCommand: npm start
     envVars:
       - key: NODE_ENV
         value: production
@@ -26,8 +27,9 @@ services:
     env: node
     plan: free
     region: oregon
-    buildCommand: cd frontend && npm install && npm run build
-    staticPublishPath: frontend/dist
+    rootDir: frontend
+    buildCommand: npm install && npm run build
+    staticPublishPath: dist
     envVars:
       - key: NODE_ENV
         value: production
