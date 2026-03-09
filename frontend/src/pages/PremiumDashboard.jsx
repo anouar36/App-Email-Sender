@@ -2,9 +2,12 @@ import { useState } from 'react';
 import { Mail, Upload, Send, FileText, Users, BarChart3, Settings, LogOut, Sparkles, Zap, Database, ChevronDown, X, Eye, Download } from 'lucide-react';
 import { useAuth } from '../utils/AuthContext';
 import { useNavigate } from 'react-router-dom';
+import TemplateMessagesSection from '../components/TemplateMessagesSection';
 
 const PremiumDashboard = () => {
-  const [selectedMode, setSelectedMode] = useState('1:1');  const [emailContent, setEmailContent] = useState('');
+  const [selectedMode, setSelectedMode] = useState('1:1');
+  const [activeTab, setActiveTab] = useState('compose'); // new state for tabs
+  const [emailContent, setEmailContent] = useState('');
   const [subject, setSubject] = useState('');
   const [uploadedFile, setUploadedFile] = useState(null);
   const [showPreviewModal, setShowPreviewModal] = useState(false);
@@ -102,10 +105,42 @@ const PremiumDashboard = () => {
               </div>
             </div>
           </div>
+        </div>      </nav>
+
+      {/* Tab Navigation */}
+      <div className="relative max-w-[1920px] mx-auto px-8 pt-4">
+        <div className="flex items-center gap-2 border-b border-white/10">
+          <button
+            onClick={() => setActiveTab('compose')}
+            className={`px-4 py-2 text-sm font-medium transition-all ${
+              activeTab === 'compose'
+                ? 'text-amber-500 border-b-2 border-amber-500'
+                : 'text-gray-400 hover:text-white'
+            }`}
+          >
+            <div className="flex items-center gap-2">
+              <Mail className="w-4 h-4" />
+              Email Composer
+            </div>
+          </button>
+          <button
+            onClick={() => setActiveTab('templates')}
+            className={`px-4 py-2 text-sm font-medium transition-all ${
+              activeTab === 'templates'
+                ? 'text-amber-500 border-b-2 border-amber-500'
+                : 'text-gray-400 hover:text-white'
+            }`}
+          >
+            <div className="flex items-center gap-2">
+              <FileText className="w-4 h-4" />
+              Template Messages
+            </div>
+          </button>
         </div>
-      </nav>      {/* Main Content - Two Column Layout */}
+      </div>      {/* Main Content - Two Column Layout */}
       <div className="relative max-w-[1920px] mx-auto px-8 py-6">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 h-[calc(100vh-120px)]">
+        {activeTab === 'compose' ? (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 h-[calc(100vh-180px)]">
           
           {/* LEFT PANEL - Input Section */}
           <div className="space-y-5 overflow-y-auto pr-2 custom-scrollbar">
@@ -351,8 +386,15 @@ const PremiumDashboard = () => {
                   feedback? send me a DM! ↗
                 </a>
               </div>
-            </div>
-          </div>        </div>
+            </div>          </div>
+
+        </div>
+        ) : (
+          /* TEMPLATES VIEW */
+          <div className="h-[calc(100vh-180px)]">
+            <TemplateMessagesSection user={user} />
+          </div>
+        )}
       </div>
 
       {/* Preview Modal */}

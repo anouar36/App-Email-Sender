@@ -1,4 +1,8 @@
-import { useState, useEffect, useRef } from 'react';
+import os
+
+path = r'C:\Users\Youcode\Desktop\App-Email-Sender\frontend\src\pages\CyberpunkDashboard.jsx'
+
+code = r"""import { useState, useEffect, useRef } from 'react';
 import {
   Send, BarChart3, Settings, LogOut, Plus, Trash2,
   Upload, Terminal, Zap, Database, ChevronRight, Download,
@@ -7,7 +11,6 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../utils/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import TemplateMessagesSection from '../components/TemplateMessagesSection';
 
 const API = 'http://localhost:5000/api';
 const authHdr = (token, json = true) => ({
@@ -31,10 +34,6 @@ const CyberpunkDashboard = () => {
   const [recipients, setRecipients] = useState('');
   const [selectedSender, setSelectedSender] = useState('');
   const [sending, setSending] = useState(false);
-  
-  // CV attachment
-  const [cvFile, setCvFile] = useState(null);
-  const [showCvPreview, setShowCvPreview] = useState(false);
 
   // senders
   const [newSenderName, setNewSenderName] = useState('');
@@ -121,78 +120,16 @@ const CyberpunkDashboard = () => {
     setSending(true);
     const rl = recipients.split(',').map(r => r.trim()).filter(Boolean);
     addLog(`INITIATING SEND to ${rl.length} recipient(s)...`);
-    
     try {
-      let requestBody;
-      
-      // Check if CV file is attached
-      if (cvFile) {
-        addLog(`ATTACHING CV: ${cvFile.name} (${(cvFile.size / 1024).toFixed(1)}KB)`);
-        
-        // Create FormData for file upload
-        const formData = new FormData();
-        formData.append('senderId', selectedSender);
-        formData.append('subject', subject);
-        formData.append('content', content);
-        formData.append('recipients', JSON.stringify(rl));
-        formData.append('cvFile', cvFile);
-        
-        const r = await fetch(`${API}/emails/send-with-attachment`, {
-          method: 'POST', 
-          headers: { Authorization: `Bearer ${token}` }, // Don't set Content-Type for FormData
-          body: formData,
-        });
-        const d = await r.json();
-        if (d.success) { 
-          addLog(`SUCCESS: ${d.message} (CV attached)`); 
-          setSubject(''); setContent(''); setRecipients(''); setCvFile(null);
-          fetchAnalytics(); 
-        } else addLog(`ERROR: ${d.message}`);
-      } else {
-        // Regular send without attachment
-        const r = await fetch(`${API}/emails/send`, {
-          method: 'POST', headers: authHdr(token),
-          body: JSON.stringify({ senderId: selectedSender, subject, content, recipients: rl }),
-        });
-        const d = await r.json();
-        if (d.success) { 
-          addLog(`SUCCESS: ${d.message}`); 
-          setSubject(''); setContent(''); setRecipients(''); 
-          fetchAnalytics(); 
-        } else addLog(`ERROR: ${d.message}`);
-      }
-    } catch (err) { 
-      addLog(`ERROR: ${err.message}`); 
-    } finally { 
-      setSending(false); 
-    }
-  };
-
-  const handleCvFileSelect = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      // Check file type and size
-      const allowedTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
-      const maxSize = 5 * 1024 * 1024; // 5MB
-      
-      if (!allowedTypes.includes(file.type)) {
-        addLog('ERROR: CV file must be PDF, DOC, or DOCX');
-        return;
-      }
-      
-      if (file.size > maxSize) {
-        addLog('ERROR: CV file too large (max 5MB)');
-        return;
-      }
-      
-      setCvFile(file);
-      addLog(`CV SELECTED: ${file.name} (${(file.size / 1024).toFixed(1)}KB)`);
-    }
-  };
-
-  const handleRemoveCv = () => {
-    setCvFile(null);
-    addLog('CV file removed');
+      const r = await fetch(`${API}/emails/send`, {
+        method: 'POST', headers: authHdr(token),
+        body: JSON.stringify({ senderId: selectedSender, subject, content, recipients: rl }),
+      });
+      const d = await r.json();
+      if (d.success) { addLog(`SUCCESS: ${d.message}`); setSubject(''); setContent(''); setRecipients(''); fetchAnalytics(); }
+      else addLog(`ERROR: ${d.message}`);
+    } catch (err) { addLog(`ERROR: ${err.message}`); }
+    finally { setSending(false); }
   };
 
   const handleAddSender = async e => {
@@ -315,7 +252,6 @@ const CyberpunkDashboard = () => {
 
   const tabs = [
     { id: 'send',      icon: Send,      label: 'SEND_MAIL'  },
-    { id: 'templates', icon: FileText,  label: 'TEMPLATES'  },
     { id: 'senders',   icon: Database,  label: 'SENDERS'    },
     { id: 'analytics', icon: BarChart3, label: 'ANALYTICS'  },
     { id: 'import',    icon: Upload,    label: 'IMPORT_CSV' },
@@ -427,86 +363,12 @@ const CyberpunkDashboard = () => {
                     <textarea value={content} onChange={e => setContent(e.target.value)} required rows={7}
                       className={`${inp} resize-none`} placeholder="Type your email content here..." />
                   </F>
-                  
-                  {/* CV ATTACHMENT SECTION */}
-                  <F label="CV_ATTACHMENT (optional)">
-                    <div className="space-y-3">
-                      {!cvFile ? (
-                        <div className="border-2 border-dashed border-green-500/30 bg-green-500/5 p-6 text-center">
-                          <input
-                            type="file"
-                            id="cv-upload"
-                            accept=".pdf,.doc,.docx"
-                            onChange={handleCvFileSelect}
-                            className="hidden"
-                          />
-                          <label
-                            htmlFor="cv-upload"
-                            className="cursor-pointer flex flex-col items-center gap-3 hover:text-green-400 transition-colors"
-                          >
-                            <Upload className="w-8 h-8 text-green-600" />
-                            <div>
-                              <p className="text-sm text-green-300 font-mono tracking-wider">
-                                [ UPLOAD_CV_FILE ]
-                              </p>
-                              <p className="text-xs text-green-700 mt-1">
-                                PDF, DOC, DOCX (max 5MB)
-                              </p>
-                            </div>
-                          </label>
-                        </div>
-                      ) : (
-                        <div className="border border-green-500/40 bg-green-500/10 p-4 flex items-center justify-between">
-                          <div className="flex items-center gap-3">
-                            <FileText className="w-5 h-5 text-green-400" />
-                            <div>
-                              <p className="text-sm text-green-300 font-mono">
-                                {cvFile.name}
-                              </p>
-                              <p className="text-xs text-green-700">
-                                {(cvFile.size / 1024).toFixed(1)}KB • {cvFile.type.split('/')[1].toUpperCase()}
-                              </p>
-                            </div>
-                          </div>
-                          <div className="flex gap-2">
-                            <button
-                              type="button"
-                              onClick={() => setShowCvPreview(true)}
-                              className="p-2 border border-green-500/40 text-green-400 hover:bg-green-500/10 transition-colors"
-                              title="Preview CV"
-                            >
-                              <Eye className="w-4 h-4" />
-                            </button>
-                            <button
-                              type="button"
-                              onClick={handleRemoveCv}
-                              className="p-2 border border-red-500/40 text-red-400 hover:bg-red-500/10 transition-colors"
-                              title="Remove CV"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  </F>
-                  
                   <button type="submit" disabled={sending || senders.length === 0}
                     className={`${btnP} px-6 py-3 text-sm hover:shadow-[0_0_20px_rgba(0,255,65,0.25)]`}>
                     <Zap className="w-4 h-4" />
-                    {sending ? '[ TRANSMITTING... ]' : cvFile ? '[ SEND_WITH_CV ]' : '[ EXECUTE_SEND ]'}
+                    {sending ? '[ TRANSMITTING... ]' : '[ EXECUTE_SEND ]'}
                   </button>
                 </form>
-              </section>
-            )}
-
-            {/* ══ TEMPLATES ══ */}
-            {activeTab === 'templates' && (
-              <section className="max-w-6xl">
-                <SH title="TEMPLATE_VIEWER.exe" sub="View and manage your email templates" />
-                <div className="bg-terminal-bg/20 border border-green-500/20 rounded p-4">
-                  <TemplateMessagesSection user={user} />
-                </div>
               </section>
             )}
 
@@ -951,66 +813,6 @@ bob@co.com,Bob,Corp Inc`}
           </div>
         </div>
       </div>
-
-      {/* CV Preview Modal */}
-      {showCvPreview && cvFile && (
-        <div className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4 font-mono">
-          <div className="bg-black border-2 border-green-500 max-w-4xl max-h-[90vh] w-full overflow-hidden flex flex-col">
-            {/* Modal Header */}
-            <div className="border-b border-green-500/30 p-4 flex items-center justify-between bg-green-500/5">
-              <div>
-                <h3 className="text-lg font-bold text-green-400 tracking-widest">
-                  [ CV_PREVIEW.exe ]
-                </h3>
-                <p className="text-xs text-green-700">{cvFile.name}</p>
-              </div>
-              <button
-                onClick={() => setShowCvPreview(false)}
-                className="px-3 py-1 border border-red-500/40 text-red-400 hover:bg-red-500/10 transition-colors text-xs tracking-widest"
-              >
-                [X] CLOSE
-              </button>
-            </div>
-
-            {/* Modal Content */}
-            <div className="flex-1 overflow-hidden p-4">
-              {cvFile.type === 'application/pdf' ? (
-                <iframe
-                  src={URL.createObjectURL(cvFile)}
-                  className="w-full h-full border border-green-500/30"
-                  title="CV Preview"
-                />
-              ) : (
-                <div className="flex flex-col items-center justify-center h-full text-center">
-                  <FileText size={64} className="text-green-700 mb-4" />
-                  <p className="text-green-400 mb-2">CV FILE READY FOR ATTACHMENT</p>
-                  <p className="text-green-700 text-sm">
-                    {cvFile.name} • {(cvFile.size / 1024).toFixed(1)}KB
-                  </p>
-                  <p className="text-green-900 text-xs mt-4">
-                    Preview not available for {cvFile.type.split('/')[1].toUpperCase()} files
-                  </p>
-                </div>
-              )}
-            </div>
-
-            {/* Modal Footer */}
-            <div className="border-t border-green-500/30 p-4 flex justify-between bg-green-500/5">
-              <div className="text-xs text-green-700 font-mono">
-                FILE_SIZE: {(cvFile.size / 1024).toFixed(1)}KB | TYPE: {cvFile.type.split('/')[1].toUpperCase()}
-              </div>
-              <div className="flex gap-2">
-                <button
-                  onClick={() => setShowCvPreview(false)}
-                  className="px-4 py-2 border border-green-500/40 text-green-400 hover:bg-green-500/10 hover:border-green-400 transition-all text-xs tracking-widest"
-                >
-                  [ CLOSE ]
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };
@@ -1030,3 +832,15 @@ const F = ({ label, children }) => (
 );
 
 export default CyberpunkDashboard;
+"""
+
+with open(path, 'w', encoding='utf-8', newline='\n') as f:
+    f.write(code)
+
+import os
+size = os.path.getsize(path)
+with open(path, 'r', encoding='utf-8') as f:
+    lines = f.readlines()
+print(f"SUCCESS: {len(lines)} lines, {size} bytes")
+print(f"First: {lines[0][:60]!r}")
+print(f"Last:  {lines[-1][:60]!r}")
