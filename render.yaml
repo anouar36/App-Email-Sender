@@ -4,8 +4,8 @@ services:
     name: email-sender-backend
     env: node
     plan: free
-    region: oregon  # or your preferred region
-    buildCommand: cd backend && npm ci
+    region: oregon
+    buildCommand: cd backend && npm install --production
     startCommand: cd backend && npm start
     envVars:
       - key: NODE_ENV
@@ -16,6 +16,8 @@ services:
         value: 10000
       - key: DATABASE_URL
         value: sqlite:./email_sender.db
+      - key: npm_config_build_from_source
+        value: true
     healthCheckPath: /api/health
 
   # Frontend Static Site  
@@ -23,8 +25,8 @@ services:
     name: email-sender-frontend
     env: node
     plan: free
-    region: oregon  # or your preferred region
-    buildCommand: cd frontend && npm ci && npm run build
+    region: oregon
+    buildCommand: cd frontend && npm install && npm run build
     staticPublishPath: frontend/dist
     envVars:
       - key: NODE_ENV
