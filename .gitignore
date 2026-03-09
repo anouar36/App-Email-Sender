@@ -3,7 +3,13 @@ read.js
 index.js
 .env
 .env.auth
+.env.local
 *.db
 *.db-journal
+*.log
 dist/
 .next/
+build/
+uploads/
+.DS_Store
+Thumbs.db
