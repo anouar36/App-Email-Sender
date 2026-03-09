@@ -4,7 +4,8 @@ services:
     name: email-sender-backend
     env: node
     plan: free
-    buildCommand: cd backend && npm install
+    region: oregon  # or your preferred region
+    buildCommand: cd backend && npm ci
     startCommand: cd backend && npm start
     envVars:
       - key: NODE_ENV
@@ -13,14 +14,27 @@ services:
         generateValue: true
       - key: PORT
         value: 10000
+      - key: DATABASE_URL
+        value: sqlite:./email_sender.db
+    healthCheckPath: /api/health
 
-  # Frontend Static Site
+  # Frontend Static Site  
   - type: static
     name: email-sender-frontend
     env: node
     plan: free
-    buildCommand: cd frontend && npm install && npm run build
+    region: oregon  # or your preferred region
+    buildCommand: cd frontend && npm ci && npm run build
     staticPublishPath: frontend/dist
     envVars:
       - key: NODE_ENV
         value: production
+      - key: VITE_API_URL
+        value: https://email-sender-backend.onrender.com
+    headers:
+      - path: /*
+        name: X-Frame-Options
+        value: DENY
+      - path: /*
+        name: X-Content-Type-Options
+        value: nosniff
