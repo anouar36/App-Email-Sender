@@ -16,9 +16,10 @@ services:
       - key: PORT
         value: 10000
       - key: DATABASE_URL
-        value: sqlite:./email_sender.db
-      - key: npm_config_build_from_source
+        value: sqlite:./email_sender.db      - key: npm_config_build_from_source
         value: true
+      - key: FRONTEND_URL
+        value: https://app-email-sender-1.onrender.com
     healthCheckPath: /api/health
 
   # Frontend Static Site  
@@ -32,9 +33,8 @@ services:
     staticPublishPath: dist
     envVars:
       - key: NODE_ENV
-        value: production
-      - key: VITE_API_URL
-        value: https://email-sender-backend.onrender.com
+        value: production      - key: VITE_API_URL
+        value: https://app-email-sender-backend.onrender.com
     headers:
       - path: /*
         name: X-Frame-Options

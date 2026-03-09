@@ -27,16 +27,18 @@ const corsOptions = {
   origin: function (origin, callback) {
     // Allow requests with no origin (mobile apps, postman, etc.)
     if (!origin) return callback(null, true);
-    
-    const allowedOrigins = [
+      const allowedOrigins = [
       'http://localhost:3000',
       'http://127.0.0.1:3000',
       process.env.FRONTEND_URL,
       // Add your actual Render frontend URL here
-      'https://email-sender-frontend.onrender.com'
+      'https://email-sender-frontend.onrender.com',
+      'https://app-email-sender-1.onrender.com'
     ].filter(Boolean);
-    
-    if (allowedOrigins.indexOf(origin) !== -1) {
+      if (allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else if (origin && origin.includes('.onrender.com')) {
+      // Allow any .onrender.com domain for flexibility
       callback(null, true);
     } else {
       console.log('CORS blocked origin:', origin);
